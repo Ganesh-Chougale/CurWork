@@ -1,0 +1,5 @@
+Main Application Class: ParkingBayApplication.java
+Controller Layer: Handle API endpoints
+Entity Layer: Map database tables
+Repository Layer: Interact with the database
+Service Layer: Handle business logic
