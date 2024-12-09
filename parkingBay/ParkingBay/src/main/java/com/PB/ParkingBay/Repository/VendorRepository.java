@@ -1,17 +1,14 @@
 package com.PB.ParkingBay.Repository;
 
+import com.PB.ParkingBay.Entity.Vendor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-//import org.springframework.stereotype.Repository;
+public interface VendorRepository extends JpaRepository<Vendor, Long> {
+    
+    Optional<Vendor> findByEmail(String email);
+    
+    Optional<Vendor> findByMobile(String mobile);
+   
 
-import com.PB.ParkingBay.Entity.Vendor;
-
-public interface VendorRepository extends JpaRepository<Vendor, Long>{
-	
-	// find user by email
-	Optional<Vendor> findByEmail(String email);
-	
-	// find use by mobile number
-	Optional<Vendor> findByMobile(String mobile);
 }

@@ -1,55 +1,51 @@
 package com.PB.ParkingBay.Service;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
+import com.PB.ParkingBay.DTO.RegisterVendorRequest;
 import com.PB.ParkingBay.Entity.Vendor;
 import com.PB.ParkingBay.Repository.VendorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
-public class VendorService implements UserDetailsService{
-	
-	@Autowired
-	private VendorRepository vRepository;
-	
-    public Optional<Vendor> findByEmail(String email) {
-        return vRepository.findByEmail(email);
-    }
+public class VendorService {
+
+    @Autowired
+    private VendorRepository vendorRepository;
     
-	public Vendor registerVendor(Vendor vendor) {
-		// password confirmation
-		if(!vendor.getPassword().equals(vendor.getConfirmPassword())) {
-			throw new IllegalArgumentException("Password do not match");
-		}
-		
-		return vRepository.save(vendor);
-	}
-	
-	// to retrieve vendor by mail
-	public Optional<Vendor> getVendorByEmail(String email){
-		return vRepository.findByEmail(email);
-	}
-	
-	public Optional<Vendor> getVendorByMobile(String mobile){
-		return vRepository.findByMobile(mobile);
-	}
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-	    // Look up vendor by email (you can adjust this depending on whether you're using mobile or email)
-	    Vendor vendor = vRepository.findByEmail(username)
-	            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
-	    
-	    return org.springframework.security.core.userdetails.User.builder()
-	            .username(vendor.getEmail())
-	            .password(vendor.getPassword())
-	            .roles("VENDOR")  // Add more roles if needed
-	            .build();
-	}
+    public String registerVendor(RegisterVendorRequest request) {
+        // Check if the email or mobile already exists
+        if (vendorRepository.findByEmail(request.getEmail()).isPresent()) {
+            return "Email already exists";
+        }
+        if (vendorRepository.findByMobile(request.getMobile()).isPresent()) {
+            return "Mobile already exists";
+        }
 
+        // Password match validation
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            return "Passwords do not match";
+        }
+
+        // Password strength validation (optional)
+        if (request.getPassword().length() < 8) {
+            return "Password must be at least 8 characters long";
+        }
+
+        // Create vendor entity and set fields
+        Vendor vendor = new Vendor();
+        vendor.setName(request.getName());
+        vendor.setEmail(request.getEmail());
+        vendor.setMobile(request.getMobile());
+        vendor.setPassword(passwordEncoder.encode(request.getPassword()));
+        vendor.setConfirmPassword(passwordEncoder.encode(request.getConfirmPassword()));  // Hash the password
+
+        // Save the vendor
+        vendorRepository.save(vendor);
+
+        return "Vendor registered successfully";
+    }
 }
